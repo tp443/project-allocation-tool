@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: static/draft_v1.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: static/draft_v1.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>// Import from JSON files
+const facultyStaffImport = JSON.parse(staffImport);
+const studentImport = JSON.parse(studentJSONData);
+const csCoursesImport = JSON.parse(compSciCourses);
+const csCourseTitlesImport = JSON.parse(dissertionOptionTitles);
+
+
+// 4 different objects which will be used throughout the programme
+var students = [];
+var facultyStaff = [];
+var projectAllocation = [];
+var courseCatalogue = [];
+
+// Dictionaries
+var studentUsernameDictionary = [];
+var supervisorUsernameDictionary = [];
+
+
+/**
+ * @function creatUserNameDictionary - Makes a dictionary of all the usernames for  students and staff
+ * @param {array} studentArray - array to extract all usernames from for students
+ * @param {array} staffArray - array to extract all usernames from for staff
+ */
+function creatUserNameDictionary(studentArray, staffArray) {
+  for (student in studentArray)
+    studentUsernameDictionary.push(studentArray[student]["Username"]);
+  for (staff in staffArray)
+    supervisorUsernameDictionary.push(staffArray[staff]["Username"]);
+}
+
+// Create 4 objeects using a key as a foreign jey alognsdie methods that will return specfic arrays
+// -----------------------------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------------------------------------------------
+
+/**
+ * @function createStaffObject - Makes an object showing all the staff members in CS with the keys being usernames
+ */
+function createStaffObject() {
+  let availableModules = returnUniqueDissModules()
+
+  for (var i = 0; i &lt; supervisorUsernameDictionary.length; i++) {
+    // Default labels
+    facultyStaff[supervisorUsernameDictionary[i]] = {
+      username: facultyStaffImport[i]['Username'],
+      firstName: facultyStaffImport[i]['Given names'],
+      lastName: facultyStaffImport[i]['Family name'],
+      fullName: facultyStaffImport[i]['Given names'] + " " + facultyStaffImport[i]['Family name'],
+    }
+
+    // Dynamic labels - changes depending on the number of modules available
+    for (var j = 0; j &lt; availableModules.length; j++) {
+      facultyStaff[supervisorUsernameDictionary[i]][availableModules[j]] = ""
+    }
+
+    // Default labels
+    facultyStaff[supervisorUsernameDictionary[i]]["sh_load"] = "";
+    facultyStaff[supervisorUsernameDictionary[i]]["total"] = "";
+    facultyStaff[supervisorUsernameDictionary[i]]["notes"] = "";
+  }
+}
+
+/**
+ * @function createModuleObject - Makes an object showing all the available modules in the CS faculty. the title of the module is the key
+ */
+function createModuleObject() {
+  for (var i = 0; i &lt; csCoursesImport.length; i++) {
+    // Import Extra fields
+    courseCatalogue[csCoursesImport[i]["title"]] = csCoursesImport[i];
+  }
+}
+
+
+
+/**
+ * @function createStudentObject - Makes an object showing all the students in CS with the keys being usernames
+ */
+
+function createStudentObject() {
+  for (var i = 0; i &lt; studentUsernameDictionary.length; i++) {
+    // Import Extra fields
+    students[studentUsernameDictionary[i]] = {
+      username: studentImport[i]['Username'],
+      id: studentImport[i]['Student ID'],
+      firstName: studentImport[i]['Given names'],
+      lastName: studentImport[i]['Family name'],
+      degreeIntention: studentImport[i]['Degree intention'],
+      dissCode: "",
+      projectTitle: "",
+      supervisor: "",
+      secondSupervisor: "",
+      secondMarker: "",
+      notes: ""
+    }
+  }
+}
+
+/**
+ * @function createProjectAllocationObject - Makes an object with the keys being usernames
+ */
+function createProjectAllocationObject() {
+  for (var i = 0; i &lt; studentUsernameDictionary.length; i++) {
+    // Import Extra fields
+    projectAllocation[studentUsernameDictionary[i]] = {
+      username: studentImport[i]['Username'],
+      id: studentImport[i]['Student ID'],
+      firstName: studentImport[i]['Given names'],
+      lastName: studentImport[i]['Family name'],
+      degreeIntention: studentImport[i]['Degree intention'],
+      dissCode: "",
+      projectTitle: "",
+      supervisor: "",
+      secondSupervisor: "",
+      secondMarker: "",
+      notes: ""
+    };
+  }
+}
+
+// Methods interacting with these objects
+// -----------------------------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------------------------------------------------
+
+
+/**
+ * @function assignCourseCodes - Allocate first possible dissertation code. The json file is set up that the most likely dissertation topic for that student is first i.e AI would be CS5099
+ */
+function assignCourseCodes() {
+
+  for (var key in projectAllocation) {
+    let obj = projectAllocation[key];
+    let course = obj.degreeIntention;
+
+    let code = courseCatalogue[course]["dissOptions"][0];
+    projectAllocation[key]["dissCode"] = code;
+  }
+}
+
+
+/**
+ * @function returnUniqueDissModules -Reutrn all possible dissertation codes
+ * @return {array} all avaible dissertation topics
+ */
+function returnUniqueDissModules() {
+  var dissertationModules = [];
+  Object.entries(courseCatalogue).forEach(
+    ([key, value]) => dissertationModules.push(value)
+  );
+
+  let unique = [];
+  for (var i = 0; i &lt; dissertationModules.length; i++) {
+    let options = dissertationModules[i].dissOptions;
+    for (var j = 0; j &lt; dissertationModules[i].dissOptions.length; j++) {
+      let option = dissertationModules[i].dissOptions[j];
+      if (!unique.includes(option)) {
+        unique.push(option);
+      }
+    }
+  }
+  return unique
+}
+
+
+/**
+ * @function arrayOfKeys - access the usernames which are used as keys
+ * @param {object} object Either staff or project allocation table
+ * @returns {array} All the keys of the object
+ */
+
+function arrayOfKeys(object) {
+  keys = [];
+  for (var key in object) {
+    var obj = object[key];
+    for (var property in obj) {
+      if (!keys.includes(property)) {
+        keys.push(property);
+      }
+    }
+  }
+  return keys
+}
+
+
+
+
+/**
+ * @function returnFullStaffName - Returns a list of all names for supervisors for auto complete section. Will be useful for displaying supervisor page
+ * @returns {array} - list of all full names
+ */
+
+function returnFullStaffName() {
+  let result = [];
+  for (var supervisor in facultyStaffImport) {
+    result.push(
+      facultyStaffImport[supervisor]["Given names"] + " " + facultyStaffImport[supervisor]['Family name']
+    )
+  }
+  return result
+}
+
+/**
+ * @function countProjectsPerSupervisor - count number of projects per supervisor in project allocation and then assign them to the facultyStaff object. Then build the supervior table
+ */
+function countProjectsPerSupervisor() {
+
+  for (var staffKey in facultyStaff) {
+    let staffObj = facultyStaff[staffKey]
+
+    /**
+     * @function numberOfProjectPerSupervisor - count number of projects for a module for that staff member
+     * @param {string} code Dissertation code student is studying
+     *@return {number} count for staff member as a supervisor
+     */
+    function numberOfProjectPerSupervisor(code) {
+
+      let count = 0;
+
+      for (var projectKey in projectAllocation) {
+        let projectObj = projectAllocation[projectKey];
+
+        let superviorText = projectObj["supervisor"]
+        let dissCodeText = projectObj["dissCode"]
+        let fullName = staffObj["firstName"] + " " + staffObj['lastName'];
+        if (fullName == superviorText &amp;&amp; code == dissCodeText) {
+          count++
+        }
+      }
+      return parseInt(count)
+    }
+
+    // Cycle through each available module a staff member could be a supoerviosr in
+    let availableModules = returnUniqueDissModules();
+    let sum = 0;
+    for (var i = 0; i &lt; availableModules.length; i++) {
+      facultyStaff[staffKey][availableModules[i]] = numberOfProjectPerSupervisor(availableModules[i]);
+      sum += staffObj[availableModules[i]]
+    }
+    staffObj["total"] = sum;
+  }
+  // Update table
+  refreshTable(facultyStaff, "staffTotalsTable")
+}
+
+
+
+
+// trial in attempt to limit workload on pc
+function countProjectsForOneSuperviosr(cellID) {
+  var row = cellID.substring(
+    cellID.lastIndexOf("C") + 1,
+    cellID.lastIndexOf("-")
+  );
+  var cell = cellID.substring(
+    cellID.lastIndexOf("-") + 1,
+  );
+  // Need to know names
+  let inputtedName = $('#T1C' + row + "-" + cell).text();
+  // Need to know diss codes
+  let studentDissCode = $('#T1C' + row + "-" + "dissCode").text();
+
+  // Add 1 to that name under that diss code
+  for (var staffKey in facultyStaff) {
+    let staffObj = facultyStaff[staffKey]
+    if (staffObj["fullName"] == inputtedName) {}
+  }
+  // total everything up
+}
+
+
+// Build/refresh tables
+// -----------------------------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------------------------------------------------
+
+
+/**
+ * @function createHeaders - create title row and filters just for supervisor project
+ *@param {string} tableID table to add headers to
+ */
+
+function createHeaders(tableID) {
+  let table = document.getElementById(tableID);
+
+  let addRow = function(rowID) {
+    let tr = document.createElement("tr");
+    let addHeaders = function(text, columnNumber) {
+      let th = document.createElement("th");
+      $(th).addClass("secondaryHeaders");
+      $(th).attr("onclick", "sortTable('staffTotalsTable'," + columnNumber + ")");
+      let txt = document.createTextNode(text);
+      th.appendChild(txt);
+      tr.appendChild(th);
+    }
+
+    let addFilters = function(id, columnNumber) {
+      let th = document.createElement("th");
+      let select = document.createElement("SELECT");
+      $(select).addClass("filtersT2");
+      $(select).attr("id", "staff-" + id);
+      $(select).attr("onchange", "filterTable('staffTotalsTable', 'staff-" + id + "'," + columnNumber + ",'.filtersT2')");
+
+      th.appendChild(select);
+      tr.appendChild(th);
+    }
+    let modules = returnUniqueDissModules();
+    if (rowID == 0) {
+
+      //Create Headers
+      addHeaders("Username", 0);
+      addHeaders("First Name", 1);
+      addHeaders("Last Name", 2);
+      let j = 2;
+      // dynmaically add title depending on the number of available modules
+      for (var i = 0; i &lt; modules.length; i++) {
+        addHeaders(modules[i], i + 3);
+        j++
+      }
+      addHeaders("SH Load", j + 1);
+      addHeaders("Total", j + 2);
+      addHeaders("Notes", j + 3);
+      $('#' + tableID).append(tr);
+    } else if (rowID == 1) {
+      // CreateFilters
+      addFilters("username", 0);
+      addFilters("firstName", 1);
+      addFilters("lastName", 2);
+      let k = 2;
+      // dynmaically add filters depending on the number of available modules
+      for (var i = 0; i &lt; modules.length; i++) {
+        addFilters(modules[i], i);
+        k++
+      }
+      addFilters("sh_load", k + 1);
+      addFilters("total", k + 2);
+      addFilters("notes", k + 3);
+      $('#' + tableID).append(tr);
+    }
+  }
+  // Add title row
+  addRow(0);
+  // Add filter row
+  addRow(1);
+}
+
+
+
+/**
+ * Creating a table using the object. Inspiration taken from David Morrison:https://studres.cs.st-andrews.ac.uk/CS5002/Examples/ExampleSolutionsAssignment3/albums.html
+ * @function refreshTable - Updates the forum. Makes a request to the server to get the latest posts
+ * @param {object} object - object to display in a table
+ * @param {string} tableID - table to refresh
+ */
+
+function refreshTable(object, tableID) {
+
+  let table = document.getElementById(tableID);
+
+
+  // Refresh table, by deleting all rows - this is for the search function
+  let rowCount = table.rows.length;
+  while (rowCount >= 3) {
+    table.deleteRow(-1);
+    rowCount--
+  }
+
+  let rowID = 0
+  let addRow = function(element) {
+    let tr = document.createElement("tr");
+    $(tr).addClass("sortable-row");
+    rowID++
+
+    let addCell = function(text, col, tableID) {
+      let td = document.createElement("td");
+      let txt = document.createTextNode(text);
+      td.appendChild(txt);
+      tr.appendChild(td);
+      $(td).attr("id", "T" + tableID + "C" + rowID + "-" + col);
+    };
+
+
+    /**
+     * Could I add "contendeditable" line to addRow and just have an iff statement
+     * @function addEditableCell -so user can input data into cell
+     * @param {string} text - text if user has already inputted data for this cell
+     */
+    let addEditableCell = function(text, col, tableID) {
+      let td = document.createElement("td");
+      let txt = document.createTextNode(text);
+      td.appendChild(txt);
+      tr.appendChild(td);
+      $(td).addClass("editable-" + col);
+      $(td).prop('contenteditable', true);
+      $(td).attr("id", "T" + tableID + "C" + rowID + "-" + col);
+
+    };
+
+    /**
+     * @function addAutocompleteCell -so user can input data into cell with autocomplete functionality
+     * @param {string} text - text if user has already inputted data for this cell
+     * @param {number} col - which column is it
+     * @param {number} tableID - which table is it
+     * @param {string} dataSource - which data source to use for autocomplete
+     */
+    let addAutocompleteCell = function(text, col, tableID, dataSource) {
+      let td = document.createElement("td");
+      let txt = document.createTextNode(text);
+      td.appendChild(txt);
+      tr.appendChild(td);
+      $(td).addClass("editable-" + col);
+      $(td).prop('id', "autocomplete")
+      $(td).attr("id", "T" + tableID + "C" + rowID + "-" + col);
+      $(td).prop('contenteditable', true);
+      // Define a source
+      if (dataSource == "supervisors") {
+        $(td).autocomplete({
+          source: returnFullStaffName()
+        })
+      } else {
+        // dynmaically offers a list of availalble modules
+        $(td).autocomplete({
+          source: courseCatalogue[dataSource]["dissOptions"]
+        })
+      }
+      // Surprised this work as I thought i would need a callback
+
+      // Attmepted to use callbacks - got it to return and it worked up until retruning the statment.
+      // source: returnSupervisorUserName(function(request, response) {
+      //   return request
+      // })
+    };
+
+    if (tableID == "allocationTable") {
+      addCell(element.username, "username", 1);
+      addCell(element.id, "id", 1);
+      addCell(element.firstName, "firstName", 1);
+      addCell(element.lastName, "lastName", 1);
+      addCell(element.degreeIntention, "degreeIntention", 1);
+
+      // For disscode - the user should be able to change the docde if the student is allowed to change module.
+      // the user should not be able to change it though if the student can not choose another module
+      // find number of availble options for that course
+      let degree = element.degreeIntention
+      let noDissOptions = courseCatalogue[element.degreeIntention]["dissOptions"].length;
+      // If only one option they can not change the dissertation code
+      if (noDissOptions == 1) {
+        addCell(element.dissCode, "dissCode", 1);
+        // If more they can change the course
+      } else {
+        addAutocompleteCell(element.dissCode, "dissCode", 1, degree);
+      }
+
+      addEditableCell(element.projectTitle, "projectTitle", 1);
+      addAutocompleteCell(element.supervisor, "supervisor", 1, "supervisors");
+      addAutocompleteCell(element.secondSupervisor, "secondSupervisor", 1, "supervisors");
+      addAutocompleteCell(element.secondMarker, "secondMarker", 1, "supervisors");
+      addEditableCell(element.notes, "notes", 1);
+    } else if (tableID == "staffTotalsTable") {
+      let modules = returnUniqueDissModules();
+
+      addCell(element.username, "username", 2);
+      addCell(element.firstName, "firstName", 2);
+      addCell(element.lastName, "lastName", 2);
+
+      let count = 2;
+      for (var i = 0; i &lt; modules.length; i++) {
+        addCell(element[modules[i]], i + 3, 2);
+        count++
+      }
+
+      addEditableCell(element['sh_load'], 'sh_load', 2);
+      addCell(element['total'], 9, 2);
+      addEditableCell(element['notes'], 'notes', 2);
+    }
+    $('#' + tableID).append(tr);
+  };
+
+  // object.forEach(element => addRow(element));
+  Object.entries(object).forEach(
+    ([key, value]) => addRow(value)
+  );
+  attatchEditEventListening()
+  // Update visulisation
+  createVisulisation()
+}
+
+/**
+ * @function arrayOfFilterIDS -  returns an array of the heading ids of all the filters. This is used for dynamically finding the number of headings and is used to adapt the filters
+ * @param {array} filterClass The filters to update
+ * @returns {array} All the filter ids
+ */
+
+function arrayOfFilterIDS(filterClass) {
+  let filterIDS = []
+  var ids = $(filterClass).map(function() {
+    filterIDS.push($(this).attr('id'));
+  });
+  return filterIDS
+}
+
+
+/**
+ * @function addOption - filters table depending on which column one wants to filter. Dynamically adds options to filter.This is taken from https://studres.cs.st-andrews.ac.uk/CS5002/Examples/ExampleSolutionsAssignment3/albums.js
+ Next setp - tr and conver to pure JQuery - https://stackoverflow.com/questions/268490/jquery-document-createelement-equivalent
+ * @param {string} select - DOM element
+ * @param {array} value - array of elements to assign to filter
+ * @param {string} text - text to assign to each filter option
+ */
+function addOption(filterID, value, text) {
+  var select = $('#' + filterID)[0]
+  let option = document.createElement("option");
+  option.value = value;
+  option.text = text;
+  select.add(option);
+}
+
+/**
+ * @function removeOptions - remove all filter options for a filter
+ * @param {string} filterID - filter to remove all children from
+ */
+
+function removeOptions(filterID) {
+  let options = $(filterID)
+  $(options).children('option').remove();
+}
+
+/**
+ * @function availableOptions - creates an array of all the available options in a filter
+ * @param {object} object - which object to explore
+ * @param {string} filterId - DOM element
+ */
+
+let availableOptions = function(object, filterId) {
+  let dropdownOptions = [];
+  // Remove filter id string before dash
+  let objectKey = filterId.split('-')[1];
+
+  for (var key in object) {
+
+    var obj = object[key];
+    var text = obj[objectKey]
+
+    var naAllocated = false;
+    // If entry is blank, say in filter that it is not allocated. Then insert at the end so as to avoid sorting
+    if (text === "") {
+      text = "Not Allocated"
+      naAllocated = true;
+    } else {
+      // Make text is not already in the filter list
+      if (!dropdownOptions.includes(text)) {
+        dropdownOptions.push(text);
+      }
+      // https://www.sitepoint.com/sophisticated-sorting-in-javascript/
+      dropdownOptions.sort(function(a, b) {
+        var x = a
+        y = b
+
+        return x &lt; y ? -1 : x > y ? 1 : 0;
+      });
+    }
+  }
+  // Insert at the end to avoid sorting
+  if (naAllocated == true) {
+    dropdownOptions.unshift("Not Allocated");
+  }
+  dropdownOptions.unshift("All");
+  for (let dropdownOption of dropdownOptions) {
+    addOption(filterId, dropdownOption, dropdownOption);
+  }
+}
+
+/**
+ * @function createFilterDropdown -  This is done to break down the procedure of building filters.
+ */
+
+function createFilterDropdown() {
+  let headersText = arrayOfKeys(projectAllocation);
+  let filterIDS = arrayOfFilterIDS(".filtersT1");
+  for (var i = 0; i &lt; filterIDS.length; i++) {
+    removeOptions("#" + filterIDS[i])
+    availableOptions(projectAllocation, filterIDS[i])
+  }
+
+  let supervisorHeadersText = arrayOfKeys(facultyStaff);
+  let filterIDST2 = arrayOfFilterIDS(".filtersT2");
+  for (var i = 0; i &lt; filterIDST2.length; i++) {
+    removeOptions("#" + filterIDST2[i])
+    availableOptions(facultyStaff, filterIDST2[i], ".filtersT2")
+  }
+}
+
+// Interact with table
+// -----------------------------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------------------------------------------------
+
+/**
+ * @function sortTable -  Sorting a table by clicking on the headers
+ * @param {string} tableID The table to sort
+ *  @param {number} column column to sort
+ * Future enhancements - add image to click on liek an arrow
+ */
+
+function sortTable(tableID, column) {
+
+  var table, rows, tableCell, switching, i, x, y, shouldSwitch, direction, switchcount = 0;
+  table = document.getElementById(tableID);
+  switching = true;
+  //Auto setting is ascening
+  direction = "asc";
+  //Loop until no more switching can take place
+  while (switching) {
+    switching = false;
+    rows = table.rows;
+    tableCell = $('td');
+    // Loop thorugh all rows expcet the headers row
+    for (var i = 2; i &lt; rows.length - 1; i++) {
+      shouldSwitch = false;
+      // Compare the two first cells in the chosen column
+      // How can I convert this to JQUERY?!
+
+      x = rows[i].getElementsByTagName("td")[column];
+      y = rows[i + 1].getElementsByTagName("td")[column];
+
+
+      if (direction == "asc") {
+        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+          // If so, mark as a switch and break the loop:
+          shouldSwitch = true;
+          break;
+        }
+      } else if (direction == "desc") {
+        if (x.innerHTML.toLowerCase() &lt; y.innerHTML.toLowerCase()) {
+          // If so, mark as a switch and break the loop:
+          shouldSwitch = true;
+          break;
+        }
+      }
+    }
+    if (shouldSwitch) {
+      // If switch then swap items and then record that a swtich has been made
+      rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+      switching = true;
+      // Each time a switch is done, increase this count by 1:
+      switchcount++;
+    } else {
+      /* If no switching has been done AND the direction is "asc",
+      set the direction to "desc" and run the while loop again. */
+      if (switchcount == 0 &amp;&amp; direction == "asc") {
+        direction = "desc";
+        switching = true;
+      }
+    }
+  }
+}
+
+/**
+ * @function searchTable -  Will filter by looking at everthing in the table not just one column. Inspiration taken from
+ * @param {string} tableID The table to search
+ * @param {string} filterType Filter class to expplore
+ * w3 schools - https://www.w3schools.com/howto/howto_js_filter_table.asp
+ */
+
+function searchTable(tableID, filterType, searchID) {
+  // Declare variables
+  var filter, rows, td, i, j;
+
+  let table = document.getElementById(tableID);
+
+  filter = $("#" + searchID).val().toUpperCase();
+  rows = table.rows
+  headers = $(filterType)
+
+  //Loop through all table rows (avoiding the header &amp; filter row), and hide those who don't match the search query
+  for (i = 2; i &lt; rows.length; i++) {
+    for (j = 0; j &lt; headers.length; j++) {
+      td = rows[i].getElementsByTagName("td")[j];
+      if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+        rows[i].style.display = "";
+        break
+      } else {
+        rows[i].style.display = "none";
+      }
+    }
+  }
+}
+
+
+
+/**
+ * @function filterTable - filters table depending on which column one wants to filter.
+ Problem 1. Can opne more concisely combine search table and this and it is quite repetitive
+ Problem 3. GEt it to work with search for anything refreshes
+* @param {string} tableID - table to filter
+* @param {string} filterId - id of the filter being used
+* @param {number} number - column in table
+* @param {string} filterClass - filter class of table
+ */
+
+function filterTable(tableID, filterId, number, filterClass) {
+
+  // find all the header ids
+  let filterIDS = arrayOfFilterIDS(filterClass)
+
+  // Establish what each  filter has selected
+  let filterNumber = []
+  for (let i = 0; i &lt; filterIDS.length; ++i) {
+    filterNumber[i] = $('#' + filterIDS[i]).val();
+
+
+    if (filterNumber[i] == "Not Allocated") {
+      filterNumber[i] = "";
+    }
+
+    let table = document.getElementById(tableID);
+    let rows = table.rows
+
+    //Loop through all table rows (avoiding the header &amp; filter row), and hide those who don't match the search query
+    for (j = 2; j &lt; rows.length; j++) {
+      td = rows[j].getElementsByTagName("td")[i];
+      var deleteTrial = rows[j].getElementsByTagName("td")[1]
+      // If the row is already displayed and a new filter is added - does it still show the infromation?
+      if (rows[j].style.display == "") {
+        if (filterNumber[i] === "All") {
+          rows[j].style.display = "";
+        } else if (td.innerHTML == filterNumber[i]) {
+          rows[j].style.display = "";
+        } else {
+          rows[j].style.display = "none";
+        }
+        // If the selected row has hidden rows, you can still filter them
+      } else if (i == number) {
+        if (filterNumber[i] === "All") {
+          rows[j].style.display = "";
+        } else if (td.innerHTML == filterNumber[i]) {
+          rows[j].style.display = "";
+        } else {
+          rows[j].style.display = "none";
+        }
+      }
+    }
+    // Reset all other filters
+    updateNotSelectedFilters(filterId, filterClass)
+  }
+}
+
+
+
+/**
+ * @function updateFilters - dynamically update filter to inputted data in a column
+ * @param {string} filterID - this is the filter(s) that has been changed and should display all the options availble
+ * @param {string} filterClass - class of filters to update
+ */
+
+function updateFilters(filterID, filterClass) {
+  var options = $("#" + filterID + " option")
+  removeOptions("#" + filterID)
+
+  let filterIDS = arrayOfFilterIDS(filterClass)
+  let columnChosen = filterIDS.indexOf(filterID)
+  if (filterClass == ".filtersT1") {
+    availableOptions(projectAllocation, filterID);
+  } else {
+    availableOptions(facultyStaff, filterID);
+  }
+}
+
+/**
+ * @function updateNotSelectedFilters - This is for complementary filters - dynamically update the other filters (that have not been altered) to only show the avaible options for that columns
+ * @param {array} idNotSelected - this is the filter(s) that has been changed and should display all the options availble
+ * @param {array} filterClass - filterclass to update
+ */
+
+function updateNotSelectedFilters(idNotSelected, filterClass) {
+  // Find filter IDS
+  let filterIDs = arrayOfFilterIDS(filterClass)
+  // Update all ids that were not selected
+  for (filter of filterIDs) {
+    if (filter != idNotSelected) {
+      updateFilters(filter, filterClass)
+    }
+  }
+}
+
+
+/**
+ * @function insertNewText -  Update projectAllocation or faculy staff Object
+ * @param {string} cellID - cellID that needs changing
+ * @param {string} col -  which column needs changing
+ * @param {string} filterID - cellID that needs changing
+ * @param {string} filterClass -  which filter class is it in
+ */
+function insertNewText(cellID, col, filterID, filterClass) {
+  var table = cellID.charAt(1)
+  var row = cellID.substring(
+    cellID.indexOf("C") + 1,
+    cellID.lastIndexOf("-")
+  );
+  var cell = cellID.substring(
+    cellID.lastIndexOf("-") + 1,
+  );
+
+  // Change projectAllocation variable to reflect change
+  if (table == 1) {
+    projectAllocation[$('#T' + table + 'C' + row + "-username").text()][col] = $('#T' + table + 'C' + row + "-" + cell).text();
+  } else if (table == 2) {
+    facultyStaff[$('#T' + table + 'C' + row + "-username").text()][col] = $('#T' + table + 'C' + row + "-" + cell).text();
+  }
+  updateFilters(filterID, filterClass)
+  createVisulisation();
+}
+
+/**
+ * @function formatChecking - This is for complementary filters - dynamically update the other filters (that have not been altered) to only show the avaible options for that columns
+ * @param {string} cellID - cell ID to examine
+ */
+
+function formatChecking(cellID) {
+  var table = cellID.charAt(1)
+  var row = cellID.substring(
+    cellID.indexOf("C") + 1,
+    cellID.lastIndexOf("-")
+  );
+  var cell = cellID.substring(
+    cellID.lastIndexOf("-") + 1,
+  );
+
+  let staffNames = returnFullStaffName();
+  let dissModules = returnUniqueDissModules();
+
+  let input = $('#' + cellID).text();
+  let degreeIntention = $('#T' + table + 'C' + row + "-degreeIntention").text();
+  let dissOptions = courseCatalogue[degreeIntention]["dissOptions"]
+
+  if (cell == "dissCode") {
+
+    if (dissOptions.includes(input)) {
+      $('#' + cellID).css('color', 'black')
+    } else {
+      $('#' + cellID).css('color', 'red')
+    }
+  } else {
+    if (staffNames.includes(input)) {
+      $('#' + cellID).css('color', 'black')
+    } else {
+      $('#' + cellID).css('color', 'red')
+    }
+  }
+}
+
+
+/**
+ * @function attatchEditEventListening - aware if any text is entered
+ */
+function attatchEditEventListening() {
+  $('.ui-autocomplete-input').focusout(function() {
+    formatChecking(this.id)
+  });
+
+  $('.editable-dissCode').focusout(function() {
+    insertNewText(this.id, "dissCode", "allocation-dissCode", ".filtersT1")
+  });
+
+  // Recognise input and adapt filters to show this
+  $('.editable-projectTitle').focusout(function() {
+    insertNewText(this.id, "projectTitle", "allocation-projectTitle", ".filtersT1")
+  });
+
+
+  $('.editable-supervisor').focusout(function() {
+    insertNewText(this.id, "supervisor", "allocation-supervisor", ".filtersT1")
+    // Could use countProjectsPerSupervisor but made the program slow
+    // countProjectsForOneSuperviosr(this.id);
+    // Have to update supervisiopr table alongisde
+    // createFilterDropdown()
+  });
+
+
+  $('.editable-secondSupervisor').focusout(function() {
+    insertNewText(this.id, "secondSupervisor", "allocation-secondSupervisor", ".filtersT1")
+  });
+
+  $('.editable-secondMarker').focusout(function() {
+    insertNewText(this.id, "secondMarker", "allocation-secondMarker", ".filtersT1")
+  });
+
+  // Recognise input and adapt filters to show this
+  $('.editable-notes').focusout(function() {
+    insertNewText(this.id, "notes", "allocation-notes", ".filtersT1")
+  });
+
+  $('.editable-sh_load').focusout(function() {
+    insertNewText(this.id, "sh_load", "staff-sh_load", ".filtersT2")
+  });
+
+  $('.editable-notes').focusout(function() {
+    insertNewText(this.id, "notes", "staff-notes", ".filtersT2")
+  });
+}
+
+
+
+// Importing, exporting and saving data
+// -----------------------------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------------------------------------------------
+
+
+/**
+ * @function saveJSON -  save data in table and wite a file
+ */
+
+function saveJSON() {
+  var tableData = [];
+  Object.entries(projectAllocation).forEach(
+    ([key, value]) => tableData.push(value)
+  );
+  var supervisorData = [];
+  Object.entries(facultyStaff).forEach(
+    ([key, value]) => supervisorData.push(value)
+  );
+  // Would like to set
+  var path = '/cs/home/tmep/Documents/Dissertation/DesignTool/draftProgram/static';
+  var type = "json"
+  fetch('/writeFile', {
+      method: 'POST',
+      headers: new Headers({
+        'Content-Type': 'application/json'
+      }),
+      body: JSON.stringify({
+        tableData,
+        supervisorData,
+        type,
+        path
+      })
+    })
+    .then(res => alert("JSON file saved"))
+    .catch(err => console.log("Error: " + err));
+}
+
+/**
+ * @function importJSON -  Update projectAllocation &amp; faculy staff Object with new uploaded data
+ */
+
+function importJSON() {
+
+  /**
+   * @function convertToProjectAllocationObject -so user can input data into cell with autocomplete functionality
+   * @param {string} importedData - imported json data
+   */
+  function convertToProjectAllocationObject(importedData) {
+    projectAllocation = [];
+    for (var i = 0; i &lt; importedData.length; i++) {
+      projectAllocation[importedData[i].username] = importedData[i];
+    }
+  }
+
+  /**
+   * Redundant - repetitive code
+   * @function convertToStaffObject -so user can input data into cell with autocomplete functionality
+   * @param {string} importedData - imported json data
+   */
+  function convertToStaffObject(importedData) {
+    facultyStaff = [];
+    for (var i = 0; i &lt; importedData.length; i++) {
+      facultyStaff[importedData[i].username] = importedData[i];
+    }
+  }
+
+  // Feel you could make this a lot shorter
+  fetch('/getJSONFile')
+    .then(response2 => console.log(response2.json()))
+    .then(response => response.json())
+    .then(dat => convertToProjectAllocationObject(dat))
+    .then(refresh => refreshTable(projectAllocation, "allocationTable"))
+    .catch(err => console.log(err));
+
+  fetch('/getJSONSupervisors')
+    .then(response => response.json())
+    .then(dat => convertToStaffObject(dat))
+    .then(refresh2 => countProjectsPerSupervisor())
+    .catch(err => console.log(err));
+}
+
+
+/**
+ * @function pdfExport - Exports current table to PDF. This uses the auto-table plugin: https://github.com/simonbengtsson/jsPDF-AutoTable
+ */
+function pdfExport() {
+  // Find number of degree options
+  let courseOptions = csCourseTitlesImport;
+  // Put object into an array
+  var tableData = [];
+  Object.entries(projectAllocation).forEach(
+    ([key, value]) => tableData.push(value)
+  );
+
+  var supervisorData = [];
+  Object.entries(facultyStaff).forEach(
+    ([key, value]) => supervisorData.push(value)
+  );
+
+  // Add course title abbreivation to pdf notes
+  for (var i = 0; i &lt; tableData.length; i++) {
+    for (courseTitleKey in courseCatalogue) {
+      if (tableData[i]['degreeIntention'] == courseTitleKey) {
+        tableData[i]['notes'] = courseCatalogue[courseTitleKey]["abbreviation"]
+      }
+    }
+  }
+
+
+  /**
+   * @function getCourseStudents -  Filter all CS students into their sepeare courses
+   * @param {string} inputtedData - data source
+   * @param {string} course -  Course number out of the avaible course.
+   * @return {array} All students on that disseration code
+   */
+  function getCourseStudents(inputtedData, course) {
+    let data = inputtedData
+    let studentsInCourse = []
+    for (var i = 0; i &lt; tableData.length; i++) {
+      if (tableData[i]['dissCode'] == course) {
+        studentsInCourse.push(tableData[i])
+      }
+    }
+    return studentsInCourse
+  }
+
+  /**
+   * @function createPDF -  Define PDF formatting
+   */
+  function createPDF() {
+    var headerIds = arrayOfKeys(projectAllocation);
+    var supervisorHeaderIds = arrayOfKeys(facultyStaff);
+    let availableModules = returnUniqueDissModules()
+
+
+    /**
+     * @function getColumns -  Columns to display for student breakdown
+     * Has to be hard coded in order to restrict certain infromation being leaked
+     * @return {array} Columns to display
+     */
+    var getColumns = function() {
+      return [{
+          title: "FORENAME",
+          dataKey: "firstName"
+        },
+        {
+          title: "SURNAME",
+          dataKey: "lastName"
+        },
+        {
+          title: "PROJECT",
+          dataKey: "projectTitle"
+        },
+        {
+          title: "SUPERVISOR",
+          dataKey: "supervisor"
+        },
+        {
+          title: "2ND MARKER",
+          dataKey: "secondMarker"
+        },
+        {
+          title: "NOTES",
+          dataKey: "notes"
+        },
+      ];
+    }
+
+    /**
+     * @function getSupervisorColumns -  getsupervisor columns
+     * Initially hard coded and then dissertion codes are dynamically added
+     * @return {array} Columns to display
+     */
+    var getSupervisorColumns = function() {
+
+      var columns = [{
+          title: "FORENAME",
+          dataKey: "firstName"
+        },
+        {
+          title: "SURNAME",
+          dataKey: "lastName"
+        },
+        {
+          title: "SH LOAD",
+          dataKey: "sh_load"
+        },
+        {
+          title: "TOTAL",
+          dataKey: "total"
+        },
+        {
+          title: "NOTES",
+          dataKey: "notes"
+        }
+      ];
+
+      // Insert modules. Have to do it backaward in order to do it in order.
+      for (var j = availableModules.length - 1; j > 0; j--) {
+        let array = {
+          "title": availableModules[j].toUpperCase(),
+          "dataKey": availableModules[j]
+        }
+        columns.splice(2, 0, array);
+      }
+
+      return columns
+    }
+
+
+    // "l" means landscape
+    var doc = new jsPDF("l");
+    doc.setFontSize(12);
+    doc.setFontStyle('bold');
+    // Cycle through tables
+    var counter = 0;
+    for (var key in courseOptions) {
+      // Only display courses if they have students enrolled in them
+      let tableLength = getCourseStudents(tableData, courseOptions[key].toLowerCase()).length
+      if (tableLength > 0) {
+        if (counter != 0) {
+          doc.addPage();
+        }
+        ++counter
+        doc.text("Code: " + courseOptions[key] + " - " + key, 20, 20);
+        doc.autoTable(getColumns(), getCourseStudents(tableData, courseOptions[key].toLowerCase()), {
+          startY: 30,
+          styles: {
+            font: 'courier',
+            lineColor: [44, 62, 80],
+            lineWidth: 0.75
+          }
+        });
+      }
+    }
+    doc.addPage();
+    doc.text("Supervisors with agreed projects", 20, 20);
+    doc.autoTable(getSupervisorColumns(), supervisorData, {
+      startY: 30,
+      styles: {
+        font: 'courier',
+        lineColor: [44, 62, 80],
+        lineWidth: 0.75
+      }
+    });
+
+    doc.save('MSc_DESEM.pdf');
+  };
+
+  createPDF()
+};
+
+/**
+ * @function convertTableToCSV - Exports current table to CSV - https://stackoverflow.com/questions/8847766/how-to-convert-json-to-csv-format-and-store-in-a-variable
+ * @param {array} array - array of object to convert into CSV
+ * @param {array} headers - array of headers for the csv file
+ * @return {string} converted object in csv format
+ */
+
+function convertToCSV(array, headers) {
+  const items = JSON.parse(JSON.stringify(array))
+  let csv = items.map(row => headers.map(fieldName => JSON.stringify(row[fieldName])).join(','))
+  csv.unshift(headers.join(','))
+  csv = csv.join('\r\n')
+  return csv
+}
+
+/**
+ * @function convertTableToCSV - Convert all infromation into a format sutiable to be converted into CSV
+ */
+
+function convertTableToCSV() {
+  let tableData = [];
+  Object.entries(projectAllocation).forEach(
+    ([key, value]) => tableData.push(value)
+  );
+  let headers = arrayOfKeys(projectAllocation);
+  let csv = convertToCSV(tableData, headers)
+  exportCSVFile("exportStudentAllocation", csv)
+}
+
+/**
+ * @function mmsGroupsCSVExport - Convert to infromation in the table to a format suitbale for MMS i.e:  username, group name, left the module
+ */
+
+function mmsGroupsCSVExport() {
+  var studentsMMS = [];
+  // Push through object into each array
+  for (var key in projectAllocation) {
+    var obj = projectAllocation[key];
+    var name = obj["firstName"] + " " + obj["lastName"];
+    studentsMMS.push({
+      "# username": key,
+      ' group name': name,
+      ' left the module': false
+    })
+  }
+
+  if (studentsMMS == "") {
+    alert("There are no students in this allocation process. Please import a file to start.")
+  } else {
+    let headers = ["# username", ' group name', ' left the module']
+    let csv = convertToCSV(studentsMMS, headers)
+    exportCSVFile("exportGroupsForMMS", csv)
+  }
+}
+
+
+/**
+ * @function mmsSupervisorsCSVExport - Convert  infromation in the table to a format suitbale for MMS i.e: supervisor username, group name, role
+ */
+
+function mmsSupervisorsCSVExport() {
+  var supervisorsMMS = [];
+  // Push through object into each array
+  for (var key in projectAllocation) {
+    var obj = projectAllocation[key];
+    var roles = []
+    var group = key;
+
+    // Locate name in each cell
+    var studentName = obj["firstName"] + " " + obj["lastName"];
+    var supervisor = obj["supervisor"];
+    var secondSupervisor = obj["secondSupervisor"];
+    var marker = obj['secondMarker']
+    // Convert names to usernames - not an efficinet way as if someone has the same given and last name the wrong user naem might be given
+    for (staff in facultyStaff) {
+      let item = facultyStaff[staff]
+      if (item['firstName'] + " " + item["lastName"] == supervisor) {
+        supervisor = staff;
+      } else if (item['firstName'] + " " + item["lastName"] == secondSupervisor) {
+        secondSupervisor = staff;
+      } else if (item['firstName'] + " " + item["lastName"] == marker) {
+        marker = staff;
+      }
+    }
+    // One make an object if name is in a cell
+    if (supervisor != "") {
+      supervisorsMMS.push({
+        "# supervisor username": supervisor,
+        ' group name': studentName,
+        ' role': "Supervisor"
+      })
+    }
+    if (secondSupervisor != "") {
+      supervisorsMMS.push({
+        "# supervisor username": secondSupervisor,
+        ' group name': studentName,
+        ' role': "Second Supervisor"
+      })
+    }
+    if (marker != "") {
+      supervisorsMMS.push({
+        "# supervisor username": marker,
+        ' group name': studentName,
+        ' role': "Marker"
+      })
+    }
+  }
+  if (supervisorsMMS == "") {
+    alert("No roles have been assigned. Please assign roles before downloading file")
+  } else {
+    let headers = ["# supervisor username", ' group name', ' role']
+    let csv = convertToCSV(supervisorsMMS, headers)
+    exportCSVFile("exportSupervisorsForMMS", csv)
+  }
+}
+
+/**
+ * @function exportCSVFile - Exporting CSV file without server side or using npm packages. https://stackoverflow.com/questions/14964035/how-to-export-javascript-array-info-to-csv-on-client-side and https://medium.com/@danny.pule/export-json-to-csv-file-using-javascript-a0b7bc5b00d2
+ * @param {string} docName - What to name the saved file
+ * @param {string} csv -  inputted csv to convert to saved file
+ */
+
+function exportCSVFile(docName, csv) {
+
+  var exportedFilenmae = docName + '.csv';
+
+  var blob = new Blob([csv], {
+    type: 'text/csv;charset=utf-8;'
+  });
+  if (navigator.msSaveBlob) { // IE 10+
+    navigator.msSaveBlob(blob, exportedFilenmae);
+  } else {
+    var link = document.createElement("a");
+    if (link.download !== undefined) { // feature detection
+      var url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", exportedFilenmae);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  }
+}
+
+
+
+/**
+ * @function createVisulisation - Create Visulisation displays infomraiton on who has been allocated
+ * https://c3js.org/samples/chart_bar_stacked.html
+ */
+
+
+function createVisulisation() {
+
+  var tableData = [];
+  Object.entries(projectAllocation).forEach(
+    ([key, value]) => tableData.push(value)
+  );
+
+
+  // Infromation for Bar Chart;
+  var allocated = ["Allocated"];
+  var notAllocated = ["Not allocated"];
+  var keyTitles = [];
+  var barChartLabels = [];
+  // All the headers availoble
+  var headers = $(".primaryHeaders").map(function() {
+    keyTitles.push($(this).text());
+  });
+
+
+  // set counters and table keys to access correct infromation
+  var countCol = [];
+  var tableKeys = arrayOfKeys(projectAllocation);
+
+  for (var i = 6; i &lt; 10; i++) {
+    countCol[i] = 0
+    for (var j = 0; j &lt; tableData.length; j++) {
+      if (tableData[j][tableKeys[i]] != "") {
+        countCol[i]++
+      }
+    }
+
+    barChartLabels.push(keyTitles[i]);
+    allocated.push(countCol[i]);
+    notAllocated.push(tableData.length - countCol[i] - 2);
+  }
+
+  var chart = c3.generate({
+    data: {
+      columns: [
+        allocated,
+        notAllocated,
+      ],
+      type: 'bar',
+      groups: [
+        [allocated[0], notAllocated[0]]
+      ]
+    },
+    grid: {
+      x: {
+        show: true
+      },
+      y: {
+        show: true
+      }
+    },
+    axis: {
+      x: {
+        type: 'category',
+        categories: barChartLabels
+      }
+    }
+  });
+
+}
+
+/**
+ * @function handleFiles - When a user inputs previosuly saved data
+ */
+
+function handleFiles() {
+
+  // Locate input file
+  file = document.querySelector('input[type=file]').files[0];
+
+
+  /**
+   * @function convertToProjectAllocationObject -so user can input data into cell with autocomplete functionality
+   * @param {string} importedData - imported json data
+   */
+  function convertToProjectAllocationObject(importedData) {
+    projectAllocation = [];
+    if (importedData == undefined) {
+      alert("Please upload a Porject Allocation Formatted File. This file is not configured correctly")
+    } else {
+      for (var i = 0; i &lt; importedData.length; i++) {
+        projectAllocation[importedData[i].username] = importedData[i];
+      }
+      refreshTable(projectAllocation, "allocationTable");
+    }
+  }
+
+  /**
+   * Redundant - repetitive code
+   * @function convertToStaffObject -so user can input data into cell with autocomplete functionality
+   * @param {string} importedData - imported json data
+   */
+  function convertToStaffObject(importedData) {
+    facultyStaff = [];
+    if (importedData != undefined) {
+      for (var i = 0; i &lt; importedData.length; i++) {
+        facultyStaff[importedData[i].username] = importedData[i];
+      }
+      countProjectsPerSupervisor();
+    }
+  }
+
+
+  if (file.type === "application/json") {
+    /**
+     * @function FileReader -reads the contents of a Blob or File.
+     * @param {object}
+     */
+    //the file reader object reads and specifies the image file
+    var reader = new FileReader();
+    //reads the data as URL
+    reader.readAsText(file);
+    //reader.onloadend grabs the image data required for posting
+    reader.onloadend = function() {
+      let result = event.target.result
+      let resultJSON = JSON.parse(result)
+      convertToProjectAllocationObject(resultJSON.tableData)
+      convertToStaffObject(resultJSON.staffData)
+      createFilterDropdown();
+    }
+  } else {
+    alert("Please upload a JSON format file")
+  }
+}
+
+
+/**
+ * @function downloadProgress - downlaod objects into JSon format. Similar style was used (https://ourcodeworld.com/articles/read/189/how-to-create-a-file-and-generate-a-download-with-javascript-in-the-browser-without-a-server)
+ */
+
+function downloadProgress() {
+  var allData = {
+    'tableData': [],
+    'staffData': []
+  }
+
+  Object.entries(projectAllocation).forEach(
+    ([key, value]) => allData.tableData.push(value)
+  );
+  Object.entries(facultyStaff).forEach(
+    ([key, value]) => allData.staffData.push(value)
+  );
+
+  let filename = "ProjectAllocation.json"
+  let file = JSON.stringify(allData)
+
+  // HTML 5 ready files due to it using the downlaod attribute of the &lt;a> element.
+  var element = document.createElement('a');
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(file));
+  element.setAttribute('download', filename);
+  element.style.display = 'none';
+  document.body.appendChild(element);
+  element.click();
+  document.body.removeChild(element);
+}
+
+
+
+$(document).ready(function() {
+  creatUserNameDictionary(studentImport, facultyStaffImport)
+  // Create objects
+  createStaffObject()
+  createStudentObject()
+  createModuleObject()
+  createProjectAllocationObject()
+
+  assignCourseCodes()
+
+  // Create tables
+  createHeaders("staffTotalsTable")
+  refreshTable(projectAllocation, "allocationTable")
+  // Counts and build supervisor table
+  countProjectsPerSupervisor();
+  createFilterDropdown();
+
+
+  // Make it manually sortable - won't let you type
+  // $("#allocationTable tbody").sortable({
+  //   items: 'tr.sortable-row',
+  //   cancel: '.ui-autocomplete-input, .editable7, .editable6, .editable8, .editable9, .editable10'
+  // });
+  // $("#allocationTable tbody").disableSelection();
+
+
+  // Buttons
+  $(`#download`).click(downloadProgress)
+
+  $(`#saveTable`).click(saveJSON);
+  $(`#importJSONFILE`).click(importJSON)
+
+  $(`#exportToPDF`).click(pdfExport)
+  $(`#exportToCSV`).click(convertTableToCSV)
+
+  $(`#exportToMMSGroups`).click(mmsGroupsCSVExport)
+  $(`#exportToMMSSupervisors`).click(mmsSupervisorsCSVExport)
+
+  $(`#refreshSupervisorTable`).click(countProjectsPerSupervisor)
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addAutocompleteCell-sousercaninputdataintocellwithautocompletefunctionality">addAutocompleteCell -so user can input data into cell with autocomplete functionality</a></li><li><a href="global.html#addEditableCell-sousercaninputdataintocell">addEditableCell -so user can input data into cell</a></li><li><a href="global.html#addOption-filterstabledependingonwhichcolumnonewantstofilter.Dynamicallyaddsoptionstofilter.Thisistakenfromhttps://studres.cs.st-andrews.ac.uk/CS5002/Examples/ExampleSolutionsAssignment3/albums.jsNextsetp-trandconvertopureJQuery-https://stackoverflow.com/questions/268490/jquery-document-createelement-equivalent">addOption - filters table depending on which column one wants to filter. Dynamically adds options to filter.This is taken from https://studres.cs.st-andrews.ac.uk/CS5002/Examples/ExampleSolutionsAssignment3/albums.js
+ Next setp - tr and conver to pure JQuery - https://stackoverflow.com/questions/268490/jquery-document-createelement-equivalent</a></li><li><a href="global.html#arrayOfKeys-accesstheusernameswhichareusedaskeys">arrayOfKeys - access the usernames which are used as keys</a></li><li><a href="global.html#attatchEditEventListening-awareifanytextisentered">attatchEditEventListening - aware if any text is entered</a></li><li><a href="global.html#availableOptions-createsanarrayofalltheavailableoptionsinafilter">availableOptions - creates an array of all the available options in a filter</a></li><li><a href="global.html#convertTableToCSV-ConvertallinfromationintoaformatsutiabletobeconvertedintoCSV">convertTableToCSV - Convert all infromation into a format sutiable to be converted into CSV</a></li><li><a href="global.html#convertToProjectAllocationObject-sousercaninputdataintocellwithautocompletefunctionality">convertToProjectAllocationObject -so user can input data into cell with autocomplete functionality</a></li><li><a href="global.html#convertToStaffObject-sousercaninputdataintocellwithautocompletefunctionality">convertToStaffObject -so user can input data into cell with autocomplete functionality</a></li><li><a href="global.html#createFilterDropdown-Thisisdonetobreakdowntheprocedureofbuildingfilters.">createFilterDropdown -  This is done to break down the procedure of building filters.</a></li><li><a href="global.html#createHeaders-createtitlerowandfiltersjustforsupervisorproject">createHeaders - create title row and filters just for supervisor project</a></li><li><a href="global.html#createPDF-DefinePDFformatting">createPDF -  Define PDF formatting</a></li><li><a href="global.html#createProjectAllocationObject-Makesanobjectwiththekeysbeingusernames">createProjectAllocationObject - Makes an object with the keys being usernames</a></li><li><a href="global.html#createStaffObject-MakesanobjectshowingallthestaffmembersinCSwiththekeysbeingusernames">createStaffObject - Makes an object showing all the staff members in CS with the keys being usernames</a></li><li><a href="global.html#createStudentObject-MakesanobjectshowingallthestudentsinCSwiththekeysbeingusernames">createStudentObject - Makes an object showing all the students in CS with the keys being usernames</a></li><li><a href="global.html#createVisulisation-CreateVisulisationdisplaysinfomraitononwhohasbeenallocatedhttps://c3js.org/samples/chart_bar_stacked.html">createVisulisation - Create Visulisation displays infomraiton on who has been allocated
+https://c3js.org/samples/chart_bar_stacked.html</a></li><li><a href="global.html#creatUserNameDictionary-Makesadictionaryofalltheusernamesforstudentsandstaff">creatUserNameDictionary - Makes a dictionary of all the usernames for  students and staff</a></li><li><a href="global.html#FileReader-readsthecontentsofaBloborFile.">FileReader -reads the contents of a Blob or File.</a></li><li><a href="global.html#filterTable-filterstabledependingonwhichcolumnonewantstofilter.Problem1.CanopnemoreconciselycombinesearchtableandthisanditisquiterepetitiveProblem3.GEtittoworkwithsearchforanythingrefreshes">filterTable - filters table depending on which column one wants to filter.
+ Problem 1. Can opne more concisely combine search table and this and it is quite repetitive
+ Problem 3. GEt it to work with search for anything refreshes</a></li><li><a href="global.html#FONT_ROW_RATIO">FONT_ROW_RATIO</a></li><li><a href="global.html#formatChecking-Thisisforcomplementaryfilters-dynamicallyupdatetheotherfilters(thathavenotbeenaltered)toonlyshowtheavaibleoptionsforthatcolumns">formatChecking - This is for complementary filters - dynamically update the other filters (that have not been altered) to only show the avaible options for that columns</a></li><li><a href="global.html#Get">Get</a></li><li><a href="global.html#getColumns-ColumnstodisplayforstudentbreakdownHastobehardcodedinordertorestrictcertaininfromationbeingleaked">getColumns -  Columns to display for student breakdown
+Has to be hard coded in order to restrict certain infromation being leaked</a></li><li><a href="global.html#getCourseStudents-FilterallCSstudentsintotheirsepearecourses">getCourseStudents -  Filter all CS students into their sepeare courses</a></li><li><a href="global.html#GetMethod">GetMethod</a></li><li><a href="global.html#getSupervisorColumns-getsupervisorcolumnsInitiallyhardcodedandthendissertioncodesaredynamicallyadded">getSupervisorColumns -  getsupervisor columns
+Initially hard coded and then dissertion codes are dynamically added</a></li><li><a href="global.html#getTheme">getTheme</a></li><li><a href="global.html#GetV">GetV</a></li><li><a href="global.html#handleFiles-Whenauserinputspreviosulysaveddata">handleFiles - When a user inputs previosuly saved data</a></li><li><a href="global.html#importJSON-UpdateprojectAllocation&faculystaffObjectwithnewuploadeddata">importJSON -  Update projectAllocation & faculy staff Object with new uploaded data</a></li><li><a href="global.html#insertNewText-UpdateprojectAllocationorfaculystaffObject">insertNewText -  Update projectAllocation or faculy staff Object</a></li><li><a href="global.html#numberOfProjectPerSupervisor-countnumberofprojectsforamoduleforthatstaffmember">numberOfProjectPerSupervisor - count number of projects for a module for that staff member</a></li><li><a href="global.html#parseSvgPath">parseSvgPath</a></li><li><a href="global.html#removeOptions-removeallfilteroptionsforafilter">removeOptions - remove all filter options for a filter</a></li><li><a href="global.html#returnUniqueDissModules-Reutrnallpossibledissertationcodes">returnUniqueDissModules -Reutrn all possible dissertation codes</a></li><li><a href="global.html#saveJSON-savedataintableandwiteafile">saveJSON -  save data in table and wite a file</a></li><li><a href="global.html#sortTable-Sortingatablebyclickingontheheaders">sortTable -  Sorting a table by clicking on the headers</a></li><li><a href="global.html#updateFilters-dynamicallyupdatefiltertoinputteddatainacolumn">updateFilters - dynamically update filter to inputted data in a column</a></li><li><a href="global.html#updateNotSelectedFilters-Thisisforcomplementaryfilters-dynamicallyupdatetheotherfilters(thathavenotbeenaltered)toonlyshowtheavaibleoptionsforthatcolumns">updateNotSelectedFilters - This is for complementary filters - dynamically update the other filters (that have not been altered) to only show the avaible options for that columns</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Jul 08 2018 12:32:14 GMT+0100 (BST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

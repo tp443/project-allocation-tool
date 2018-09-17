@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: static/c3-0.6.2/spec/svg-helper.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: static/c3-0.6.2/spec/svg-helper.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Parse the d property of an SVG path into an array of drawing commands.
+ * @param  {String} d SvgPath d attribute.]
+ * @return {Array} an array of drawing commands.
+ */
+export function parseSvgPath(d) { //jshint ignore:line
+    'use strict';
+
+    var commands = [];
+    var commandTokens = ['M','L','I','H','V','C','S','Q','T','A'];
+    var command;
+    var in_x = false;
+    var in_y = false;
+    var x = '';
+    var y = '';
+    for(var i = 0; i &lt;= d.length; i++) {
+        if (commandTokens.indexOf(d[i]) !== -1) {
+            if (in_x || in_y) {
+                commands.push({command: command, x: x, y: y});
+                x = '';
+                y = '';
+            }
+            command = d[i];
+            in_x = true;
+            in_y = false;
+        }
+        else {
+            if (d[i] === ',') {
+                if (in_y) {
+                    commands.push({command: command, x: x, y: y});
+                    x = '';
+                    y = '';
+                }
+                in_x = !in_x;
+                in_y = !in_y;
+            }
+            else if (in_x) {
+                x += d[i];
+            }
+            else if (in_y) {
+                y += d[i];
+            }
+        }
+    }
+    if (d[i] !== ',' &amp;&amp; in_y) {
+        commands.push({command: command, x: x, y: y});
+    }
+    return commands;
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addAutocompleteCell-sousercaninputdataintocellwithautocompletefunctionality">addAutocompleteCell -so user can input data into cell with autocomplete functionality</a></li><li><a href="global.html#addEditableCell-sousercaninputdataintocell">addEditableCell -so user can input data into cell</a></li><li><a href="global.html#addOption-filterstabledependingonwhichcolumnonewantstofilter.Dynamicallyaddsoptionstofilter.Thisistakenfromhttps://studres.cs.st-andrews.ac.uk/CS5002/Examples/ExampleSolutionsAssignment3/albums.jsNextsetp-trandconvertopureJQuery-https://stackoverflow.com/questions/268490/jquery-document-createelement-equivalent">addOption - filters table depending on which column one wants to filter. Dynamically adds options to filter.This is taken from https://studres.cs.st-andrews.ac.uk/CS5002/Examples/ExampleSolutionsAssignment3/albums.js
+ Next setp - tr and conver to pure JQuery - https://stackoverflow.com/questions/268490/jquery-document-createelement-equivalent</a></li><li><a href="global.html#arrayOfKeys-accesstheusernameswhichareusedaskeys">arrayOfKeys - access the usernames which are used as keys</a></li><li><a href="global.html#attatchEditEventListening-awareifanytextisentered">attatchEditEventListening - aware if any text is entered</a></li><li><a href="global.html#availableOptions-createsanarrayofalltheavailableoptionsinafilter">availableOptions - creates an array of all the available options in a filter</a></li><li><a href="global.html#convertTableToCSV-ConvertallinfromationintoaformatsutiabletobeconvertedintoCSV">convertTableToCSV - Convert all infromation into a format sutiable to be converted into CSV</a></li><li><a href="global.html#convertToProjectAllocationObject-sousercaninputdataintocellwithautocompletefunctionality">convertToProjectAllocationObject -so user can input data into cell with autocomplete functionality</a></li><li><a href="global.html#convertToStaffObject-sousercaninputdataintocellwithautocompletefunctionality">convertToStaffObject -so user can input data into cell with autocomplete functionality</a></li><li><a href="global.html#createFilterDropdown-Thisisdonetobreakdowntheprocedureofbuildingfilters.">createFilterDropdown -  This is done to break down the procedure of building filters.</a></li><li><a href="global.html#createHeaders-createtitlerowandfiltersjustforsupervisorproject">createHeaders - create title row and filters just for supervisor project</a></li><li><a href="global.html#createPDF-DefinePDFformatting">createPDF -  Define PDF formatting</a></li><li><a href="global.html#createProjectAllocationObject-Makesanobjectwiththekeysbeingusernames">createProjectAllocationObject - Makes an object with the keys being usernames</a></li><li><a href="global.html#createStaffObject-MakesanobjectshowingallthestaffmembersinCSwiththekeysbeingusernames">createStaffObject - Makes an object showing all the staff members in CS with the keys being usernames</a></li><li><a href="global.html#createStudentObject-MakesanobjectshowingallthestudentsinCSwiththekeysbeingusernames">createStudentObject - Makes an object showing all the students in CS with the keys being usernames</a></li><li><a href="global.html#createVisulisation-CreateVisulisationdisplaysinfomraitononwhohasbeenallocatedhttps://c3js.org/samples/chart_bar_stacked.html">createVisulisation - Create Visulisation displays infomraiton on who has been allocated
+https://c3js.org/samples/chart_bar_stacked.html</a></li><li><a href="global.html#creatUserNameDictionary-Makesadictionaryofalltheusernamesforstudentsandstaff">creatUserNameDictionary - Makes a dictionary of all the usernames for  students and staff</a></li><li><a href="global.html#FileReader-readsthecontentsofaBloborFile.">FileReader -reads the contents of a Blob or File.</a></li><li><a href="global.html#filterTable-filterstabledependingonwhichcolumnonewantstofilter.Problem1.CanopnemoreconciselycombinesearchtableandthisanditisquiterepetitiveProblem3.GEtittoworkwithsearchforanythingrefreshes">filterTable - filters table depending on which column one wants to filter.
+ Problem 1. Can opne more concisely combine search table and this and it is quite repetitive
+ Problem 3. GEt it to work with search for anything refreshes</a></li><li><a href="global.html#FONT_ROW_RATIO">FONT_ROW_RATIO</a></li><li><a href="global.html#formatChecking-Thisisforcomplementaryfilters-dynamicallyupdatetheotherfilters(thathavenotbeenaltered)toonlyshowtheavaibleoptionsforthatcolumns">formatChecking - This is for complementary filters - dynamically update the other filters (that have not been altered) to only show the avaible options for that columns</a></li><li><a href="global.html#Get">Get</a></li><li><a href="global.html#getColumns-ColumnstodisplayforstudentbreakdownHastobehardcodedinordertorestrictcertaininfromationbeingleaked">getColumns -  Columns to display for student breakdown
+Has to be hard coded in order to restrict certain infromation being leaked</a></li><li><a href="global.html#getCourseStudents-FilterallCSstudentsintotheirsepearecourses">getCourseStudents -  Filter all CS students into their sepeare courses</a></li><li><a href="global.html#GetMethod">GetMethod</a></li><li><a href="global.html#getSupervisorColumns-getsupervisorcolumnsInitiallyhardcodedandthendissertioncodesaredynamicallyadded">getSupervisorColumns -  getsupervisor columns
+Initially hard coded and then dissertion codes are dynamically added</a></li><li><a href="global.html#getTheme">getTheme</a></li><li><a href="global.html#GetV">GetV</a></li><li><a href="global.html#handleFiles-Whenauserinputspreviosulysaveddata">handleFiles - When a user inputs previosuly saved data</a></li><li><a href="global.html#importJSON-UpdateprojectAllocation&faculystaffObjectwithnewuploadeddata">importJSON -  Update projectAllocation & faculy staff Object with new uploaded data</a></li><li><a href="global.html#insertNewText-UpdateprojectAllocationorfaculystaffObject">insertNewText -  Update projectAllocation or faculy staff Object</a></li><li><a href="global.html#numberOfProjectPerSupervisor-countnumberofprojectsforamoduleforthatstaffmember">numberOfProjectPerSupervisor - count number of projects for a module for that staff member</a></li><li><a href="global.html#parseSvgPath">parseSvgPath</a></li><li><a href="global.html#removeOptions-removeallfilteroptionsforafilter">removeOptions - remove all filter options for a filter</a></li><li><a href="global.html#returnUniqueDissModules-Reutrnallpossibledissertationcodes">returnUniqueDissModules -Reutrn all possible dissertation codes</a></li><li><a href="global.html#saveJSON-savedataintableandwiteafile">saveJSON -  save data in table and wite a file</a></li><li><a href="global.html#sortTable-Sortingatablebyclickingontheheaders">sortTable -  Sorting a table by clicking on the headers</a></li><li><a href="global.html#updateFilters-dynamicallyupdatefiltertoinputteddatainacolumn">updateFilters - dynamically update filter to inputted data in a column</a></li><li><a href="global.html#updateNotSelectedFilters-Thisisforcomplementaryfilters-dynamicallyupdatetheotherfilters(thathavenotbeenaltered)toonlyshowtheavaibleoptionsforthatcolumns">updateNotSelectedFilters - This is for complementary filters - dynamically update the other filters (that have not been altered) to only show the avaible options for that columns</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Jul 08 2018 12:32:14 GMT+0100 (BST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

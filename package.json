@@ -1,0 +1,26 @@
+{
+  "name": "project-allocation-tool",
+  "version": "1.0.0",
+  "description": "A tool used to allocate projects to students alongside a superviosr, second supervisor and a marker.",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "test": "mocha ./tests"
+  },
+  "keywords": [
+    "Allocation",
+    "Dissertation",
+    "Supervisors",
+    "Export"
+  ],
+  "author": "tmep",
+  "license": "ISC",
+  "dependencies": {
+    "chai": "^4.1.2",
+    "chai-http": "^4.0.0",
+    "express": "^4.16.3",
+    "jsdoc": "^3.5.5",
+    "meteor-node-stubs": "^0.4.1",
+    "mocha": "^5.2.0"
+  }
+}

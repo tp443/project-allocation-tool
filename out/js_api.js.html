@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: js/api.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: js/api.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Server Side JavaScript with RESTful api handlers and middleware functions to get and post data between the client and server.
+ *
+ * The Week 9 complete app example by Dr Kasim Terzic proved a great base into understanding how to implement the server side
+ *
+ * @author tmep
+ * @date August 8th 2018
+ * @module js/api
+ */
+
+(function() {
+
+  let express = require('express');
+  let bodyParser = require('body-parser');
+  let fs = require('fs');
+  let path = require('path');
+
+  let thePort;
+
+  // Export the public methods of the module so we can run it from JS
+  module.exports = {
+    /**
+     * Runs the application
+     * @function
+     * @returns {Object}    The newly created Express app
+     */
+    runApp,
+
+    /**
+     * Configure the app processing pipeline. Call directly instead of runApp() for
+     * testing etc.
+     * @function
+     */
+    configureApp,
+  };
+
+  /***********************************************************************************
+   * Express Application
+   ***********************************************************************************/
+
+  /**
+   * Run the app on the default port 8080. Makes use of configureApp to set up the
+   * processing pipeline.
+   *
+   * @returns {Object} The newly created Express app
+   */
+  function runApp() {
+    thePort = 9998;
+
+    let app = express();
+    configureApp(app);
+    console.log("Listening on port " + thePort);
+    return app.listen(thePort);
+  }
+
+  /**
+   * Configure the app processing pipeline. Call directly instead of runApp() for
+   * testing etc.
+   */
+  function configureApp(app) {
+
+    // This will parse anything submitted to us by assuming it is JSON.
+    // The parsed object will be added as "body" to the request object and passed
+    // on. This is useful if we exchange a lot of JSON documents, as we tend to do
+    app.use(bodyParser.json());
+
+
+    // If we get a "get" request for a URL in the form: /getItems
+    // then call the getObject handler
+    app.post("/writeFile", writeFile);
+
+    app.get("/getJSONFile", getJSONFile);
+    // For everything else, serve a static page from the
+    // "static" directory. This would, e.g. be the HTML and
+    // CSS files and any client-side js files requested
+    // by the browser
+    app.use('/', express.static('static'));
+  }
+
+  var writeFile = function(req, res, next) {
+
+    var path = require('path');
+    var filePath = path.join('/cs/home/tmep/Documents/Dissertation/DesignTool/draftProgram/static/last-saved-file', 'savedProgress.json')
+    var jsonobj = req.body.allData;
+
+    var string = JSON.stringify(jsonobj)
+
+    fs.writeFile(filePath, string, function(err) {
+      if (err) {
+        console.log(err);
+      };
+      res.status(200).end(JSON.stringify(string));
+    });
+  }
+
+  var getJSONFile = function(req, res, next) {
+    try {
+    var filePath = path.join('/cs/home/tmep/Documents/Dissertation/DesignTool/draftProgram/static/last-saved-file/', 'savedProgress.json')
+    var data = fs.readFileSync(filePath, 'utf8');
+    if (data.length > 0) {
+      var jsonData = JSON.parse(data);
+      res.status(201).end(JSON.stringify(jsonData));
+    } else {
+      console.log("There are no previously saved sessions to import");
+    }
+  }
+
+    catch (error) {
+      console.error(error);
+      res.status(500).send('Error - Something went wrong')
+    };
+  }
+
+})();
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-js_api.html">js/api</a></li><li><a href="module-static_client.html">static/client</a></li><li><a href="module-static_creatingObjects.html">static/creatingObjects</a></li><li><a href="module-static_importAndExport.html">static/importAndExport</a></li><li><a href="module-static_table.html">static/table</a></li></ul><h3>Global</h3><ul><li><a href="global.html#FONT_ROW_RATIO">FONT_ROW_RATIO</a></li><li><a href="global.html#Get">Get</a></li><li><a href="global.html#GetMethod">GetMethod</a></li><li><a href="global.html#getTheme">getTheme</a></li><li><a href="global.html#GetV">GetV</a></li><li><a href="global.html#parseSvgPath">parseSvgPath</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Aug 23 2018 15:51:19 GMT+0100 (BST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

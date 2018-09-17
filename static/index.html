@@ -1,0 +1,354 @@
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Draft </title>
+
+  <!-- JQeury -->
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+  <!-- Import csvFiles -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/0.71/jquery.csv-0.71.min.js"></script>
+
+  <!-- Load d3.js and c3.js -->
+  <script src="libraries/c3-0.6.2/d3.min.js" charset="utf-8"></script>
+  <script src="libraries/c3-0.6.2/c3.min.js"></script>
+  <!-- Load c3.css -->
+  <link href="libraries/c3-0.6.2/c3.css" rel="stylesheet">
+
+  <!-- JSPDF-for exporting to PDF-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.4.1/jspdf.debug.js" integrity="sha384-THVO/sM0mFD9h7dfSndI6TS0PgAGavwKvB5hAxRRvc0o9cPLohB0wb/PTA7LdUHs" crossorigin="anonymous"></script>
+  <script src="libraries/jsPDF/jspdf.min.js"></script>
+  <script src="libraries/jsPDF/jspdf.plugin.autotable.js"></script>
+
+  <!--Bootstrap libraries-->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/dashboard.css" rel="stylesheet">
+  <script type="text/javascript" src="libraries/bootstrap-filestyle-2.1.0/src/bootstrap-filestyle.min.js"></script>
+
+  <!-- Dropdown menus require Popper.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+
+  <!-- Autocomplete Widget - http://api.jqueryui.com/autocomplete/ -->
+  <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+
+  <!-- Source Files -->
+  <script src="courseCatelogue/csCourses.js"></script>,
+  <script src="client.js"></script>
+  <script src="creatingObjects.js"></script>
+  <script src="table.js"></script>
+  <script src="importAndExport.js"></script>
+
+</head>
+
+<style>
+  .import-section {
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+
+  .alert {
+    margin: 20px;
+  }
+
+  .alert-success {
+    display: inline-block;
+  }
+</style>
+
+</script>
+
+<body>
+  <!-- Header Bar -->
+  <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
+    <a class="navbar-brand col-xl-1 col-lg-3 col-sm-3 col-md-3 mr-0" href="javascript:showProjectAllocationPage()">Allocation</a>
+    <!-- Search Bars -->
+    <input class="form-control form-control-dark" type="text" id="searchSupervisors" onkeyup="searchTable('staffTotalsTable','.secondaryHeaders','searchSupervisors')" placeholder="Search table...">
+    <input class="form-control form-control-dark" type="text" id="searchAllocation" Firday onkeyup="searchTable('allocationTable','.primaryHeaders','searchAllocation')" placeholder="Search table...">
+    <!-- Top right save button -->
+    <ul class="navbar-nav px-3">
+      <li class="nav-item text-nowrap">
+        <a class="nav-link" href="javascript:saveJSON()">Overwrite Last Save</a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- This whole section spans the entire width of the viewport - for proper alignment and padding-->
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Create  Sidebar Navigation -->
+      <nav class="col-xl-1 col-lg-3 col-sm-3 col-md-3 d-none d-md-block bg-light sidebar">
+        <div class="sidebar-sticky">
+          <ul class="nav flex-column">
+            <li class="nav-item">
+              <!-- Active Class labels which page is currently being used -->
+              <a id="importDataNav" class="nav-link active" href="javascript:showImportPage()">
+                Import Data
+              </a>
+            </li>
+            <li class="nav-item">
+              <a id="visulisationNav" class="nav-link" href="javascript:showVisulisationPage()">
+                Progress Visulisation
+              </a>
+            </li>
+            <li class="nav-item">
+              <a id="allocationNav" class="nav-link" href="javascript:showProjectAllocationPage()">
+                Project Allocation
+              </a>
+            </li>
+            <li class="nav-item">
+              <a id="staffNav" class="nav-link" href="javascript:showFacultyStaffPage()">
+                Faculty Staff
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+
+      <!-- FIRST PAGE - Import Page. For importing new data/Past Saved Data/Most Recent Save -->
+      <main id="importPage" role="main" class="col-xl-11 col-lg-9 col-sm-9 col-md-9 ml-sm-auto col-lg-10 px-4">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+          <h1 class="h2">Import CSV</h1>
+        </div>
+
+        <div class="import-section">
+          <h4 class="h4">i. Import Supervisors CSV</h4>
+          <!-- Import CSV 1 File with Format Help -->
+          <div class="btn-group mr-2">
+            <input type="file" class="filestyle" id="sup-upload" data-placeholder=".csv format" onchange="handleFiles('sup-upload')" accept=".csv" /> <br>
+          </div>
+          <button class="btn btn-sm btn-outline-secondary " data-toggle="collapse" data-target="#formatSupervisors">Format of File?</button>
+          <div id="formatSupervisors" class="collapse ">
+            CSV file with headers: Engagement no; Staff ID; Username; Title; Given names; Family name; Email
+          </div>
+          <div class="successOrNot alert alert-success" id="progressMessageInput-sup-upload">Success</div>
+          <div class="successOrNot alert alert-danger" id="progressMessageInput-sup-upload-failure"><strong> Wrong Format!</strong> Please submit a CSV file with headers in the first row as decibed in the format section</div>
+        </div>
+
+        <div class="import-section">
+          <h4 class="h4">ii. Import Students CSV</h4>
+          <!-- Import CSV 2 File with Format Help -->
+          <div class="btn-group mr-2">
+            <input type="file" class="filestyle" id="stu-upload" data-placeholder=".csv format" onchange="handleFiles('stu-upload')" accept=".csv" />
+          </div>
+          <button class="btn btn-sm btn-outline-secondary " data-toggle="collapse" data-target="#formatStudents">Format of File?</button>
+          <div id="formatStudents" class="collapse ">
+            CSV file with headers: Engagement no; Student ID; Username; Title; Given names; Family name; Email; Date of birth; Full/part time; Registration status; Qualification awarded; Class awarded; Faculty; Student type; Programme name; Degree intention; Degree
+          </div>
+          <div class="successOrNot alert alert-success" id="progressMessageInput-stu-upload">Success</div>
+          <div class="successOrNot alert alert-danger" id="progressMessageInput-stu-upload-failure"><strong> Wrong Format!</strong> Please submit a CSV file with headers in the first row as decibed in the format section</div>
+        </div>
+
+        <div id="successCV" class="alert alert-success">
+          <strong>Successs!</strong> All data has been imported. You can now resume progress on <a href="javascript:showProjectAllocationPage()" class="alert-link">Project Allocation </a>
+        </div>
+
+
+        <div class="import-section">
+          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">2. Load Stored Data</h1>
+          </div>
+          <div>
+            <button id="uploadLastSave" class="btn btn-sm btn-outline-secondary" onClick="importJSON()">Import</button>
+          </div>
+          <p>
+        </div>
+
+        <div id="successImport" class="alert alert-success">
+          <strong>Success!</strong> All data has been imported. You can now resume progress on <a href="javascript:showProjectAllocationPage()" class="alert-link">Project Allocation </a>
+        </div>
+
+        <div class="import-section">
+          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">3. Load From Downloaded File</h1>
+          </div>
+          <div class="btn-group mr-2">
+            <input class="btn btn-sm btn-outline-secondary filestyle" type="file" id="inputSavedProgressSetUp" data-placeholder=".json format" onchange="handleFiles('inputSavedProgressSetUp')" accept=".json"><br>
+          </div>
+        </div>
+
+        <div id="successDownloadedFile" class="alert alert-success">
+          <strong>Success!</strong> All data has been imported. You can now resume progress on <a href="javascript:showProjectAllocationPage()" class="alert-link">Project Allocation </a>
+        </div>
+
+        <div id="addRows">
+          <div class="import-section">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+              <h1 class="h2">4. Add Rows</h1>
+            </div>
+            <h4 class="h4">i. Add Supervisors</h4>
+            <div class="btn-group mr-2">
+              <input class="btn btn-sm btn-outline-secondary filestyle" type="file" id="addSupervisorRow" data-placeholder=".csv format" onchange="handleFiles('addSupervisorRow')" accept=".csv"><br>
+            </div>
+          </div>
+          <div class="successOrNot alert alert-danger" id="progressMessageInput-addSupervisorRow-failure"><strong> Wrong Format!</strong> Please submit a CSV file with headers in the first row as decibed in the format section</div>
+
+          <div class="import-section">
+            <h4 class="h4">ii. Add Students</h4>
+            <div class="btn-group mr-2">
+              <input class="btn btn-sm btn-outline-secondary filestyle" type="file" id="addStudentRow" data-placeholder=".csv format" onchange="handleFiles('addStudentRow')" accept=".csv"><br>
+            </div>
+          </div>
+          <div class="successOrNot alert alert-danger" id="progressMessageInput-addStudentRow-failure"><strong> Wrong Format!</strong> Please submit a CSV file with headers in the first row as decibed in the format section</div>
+        </div>
+      </main>
+
+      <!-- SECOND PAGE - Project Allocation Page with table -->
+      <main id="projectAllocationPage" role="main" class="col-xl-11 col-lg-9 col-sm-9 col-md-9 ml-sm-auto col-lg-10 px-4">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+          <h1 class="h2">Student Project Allocation</h1>
+          <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+              <input class="btn btn-sm btn-outline-secondary filestyle" type="file" id="inputSavedProgressMidWay" data-placeholder="Input Saved File" onchange="handleFiles('inputSavedProgressMidWay')" accept=".json"><br>
+              <button class="btn btn-sm btn-outline-secondary" id="download" onClick="downloadProgress()">Download progress</button>
+            </div>
+
+            <!-- Buttons for downlaoding and exporting -->
+            <div class="dropleft">
+              <button class="btn btn-md btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown">Export</button>
+              <ul class="dropdown-menu">
+                <li class="dropdown-header">Table</li>
+                <li><a class="dropdown-item" href="javascript:convertTableToCSV(projectAllocation, 'StudentTable')">CSV</a></li>
+                <div class="dropdown-divider"></div>
+                <li class="dropdown-header">MMS</li>
+                <li><a class="dropdown-item" href="javascript:mmsGroupsCSVExport()">Groups</a></li>
+                <li><a class="dropdown-item" href="javascript:mmsSupervisorsCSVExport()">Supervisors</a></li>
+                <div class="dropdown-divider"></div>
+                <li class="dropdown-header">Studres Format</li>
+                <li><a class="dropdown-item" href="javascript:pdfExport()">PDF</a></li>
+            </div>
+          </div>
+        </div>
+        <div class="alert alert-danger">
+          <strong>No Data!</strong> Please either import supervisor & student CSV data or uplaod a previously saved session in the <a href="javascript:showImportPage()" class="alert-link"> Import Data </a> Section
+        </div>
+
+        <!-- Table with bootstrap formatting -->
+        <table id="allocationTable" class="table table-hover">
+            <caption>To add/delete student or supervisors, please go to the 4th section on the <a href="javascript:showImportPage()" class="alert-link">Import Data Page</a> </caption>
+          <!-- Table Headers -->
+          <tr>
+            <th class="primaryHeaders" onclick="sortTable('allocationTable',0)">Username</th>
+            <th class="primaryHeaders" onclick="sortTable('allocationTable',1)">Id</th>
+            <th class="primaryHeaders" onclick="sortTable('allocationTable',2)">First Name</th>
+            <th class="primaryHeaders" onclick="sortTable('allocationTable',3)">Last Name</th>
+            <th class="primaryHeaders" onclick="sortTable('allocationTable',4)">Degree Intention</th>
+            <th class="primaryHeaders" onclick="sortTable('allocationTable',5)">Diss Code</th>
+            <th class="primaryHeaders" onclick="sortTable('allocationTable',6)">Project Title</th>
+            <th class="primaryHeaders" onclick="sortTable('allocationTable',7)">Supervisor</th>
+            <th class="primaryHeaders" onclick="sortTable('allocationTable',8)">2nd Supervisor</th>
+            <th class="primaryHeaders" onclick="sortTable('allocationTable',9)">Marker</th>
+            <th class="primaryHeaders" onclick="sortTable('allocationTable',10)">Notes</th>
+          </tr>
+          <tr>
+            <th>
+              <select class="filtersT1" id="allocation-username" onchange="filterTable('allocationTable','allocation-username', 0, '.filtersT1')"></select>
+              <!-- Insert course as options here -->
+            </th>
+            <th>
+              <select class="filtersT1" id="allocation-id" onchange="filterTable('allocationTable','allocation-id', 1, '.filtersT1')"></select>
+              <!-- Insert course as options here -->
+            </th>
+            <th>
+              <select class="filtersT1" id="allocation-firstName" onchange="filterTable('allocationTable','allocation-firstName', 2, '.filtersT1')"></select>
+              <!-- Insert course as options here -->
+            </th>
+            <th>
+              <select class="filtersT1" id="allocation-lastName" onchange="filterTable('allocationTable','allocation-lastName', 3, '.filtersT1')"></select>
+              <!-- Insert course as options here -->
+            </th>
+            <th>
+              <select class="filtersT1" id="allocation-degreeIntention" onchange="filterTable('allocationTable','allocation-degreeIntention', 4, '.filtersT1')">refresh</select>
+              <!-- Insert course as options here -->
+            </th>
+            <th>
+              <select class="filtersT1" id="allocation-dissCode" onchange="filterTable('allocationTable','allocation-dissCode', 5, '.filtersT1')"></select>
+              <!-- Insert course as options here -->
+            </th>
+            <th>
+              <select class="filtersT1" id="allocation-projectTitle" onchange="filterTable('allocationTable','allocation-projectTitle', 6, '.filtersT1')"></select>
+              <!-- Insert course as options here -->
+            </th>
+            <th>
+              <select class="filtersT1" id="allocation-supervisor" onchange="filterTable('allocationTable','allocation-supervisor', 7, '.filtersT1')"></select>
+              <!-- Insert course as options here -->
+            </th>
+            <th>
+              <select class="filtersT1" id="allocation-secondSupervisor" onchange="filterTable('allocationTable','allocation-secondSupervisor', 8, '.filtersT1')"></select>
+              <!-- Insert course as options here -->
+            </th>
+            <th>
+              <select class="filtersT1" id="allocation-secondMarker" onchange="filterTable('allocationTable','select2Marker', 9, '.filtersT1')"></select>
+              <!-- Insert course as options here -->
+            </th>
+            <th>
+              <select class="filtersT1" id="allocation-notes" onchange="filterTable('allocationTable','allocation-notes', 10, '.filtersT1')"></select>
+              <!-- Insert course as options here -->
+            </th>
+          </tr>
+        </table>
+      </main>
+
+      <!-- THIRD PAGE - Faculty Staff Page with table -->
+      <main id="facultyStaffPage" role="main" class="col-xl-11 col-lg-9 col-sm-9 col-md-9 ml-sm-auto col-lg-10 px-4">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+          <h1 class="h2">Faculty Staff Overview</h1>
+          <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+              <button class="btn btn-sm btn-outline-secondary" id="download" onClick="downloadProgress()">Download progress</button>
+            </div>
+            <!-- Buttons for downloading and exporting -->
+            <div class="dropleft">
+              <button class="btn btn-md btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown">Export</button>
+              <ul class="dropdown-menu">
+                <li class="dropdown-header">Table</li>
+                <!-- Downlaods Faculty staff tbale rather than Project Allocation table in Project Allocation Page -->
+                <li><a class="dropdown-item" href="javascript:convertTableToCSV(facultyStaff, 'facultyStaff')">CSV</a></li>
+                <div class="dropdown-divider"></div>
+                <li class="dropdown-header">MMS</li>
+                <li><a class="dropdown-item" href="javascript:mmsGroupsCSVExport()">Groups</a></li>
+                <li><a class="dropdown-item" href="javascript:mmsSupervisorsCSVExport()">Supervisors</a></li>
+                <div class="dropdown-divider"></div>
+                <li class="dropdown-header">Studres Format</li>
+                <li><a class="dropdown-item" href="javascript:pdfExport()">PDF</a></li>
+            </div>
+          </div>
+        </div>
+        <!-- Warning message if no data -->
+        <div class="alert alert-danger">
+          <strong>No Data!</strong> Please either import supervisor & student CSV data or uplaod a previously saved session in the <a href="javascript:showImportPage()" class="alert-link"> Import Data </a> Section
+        </div>
+        <!-- Table which is dynamically made -->
+        <table id="staffTotalsTable" class="table"></table>
+      </main>
+
+
+      <!-- FOURTH PAGE - Visulisation of Progress-->
+      <main id="visulisationPage" role="main" class="col-xl-11 col-lg-9 col-sm-9 col-md-9 ml-sm-auto col-lg-10 px-4">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+          <h1 class="h2">Progress Visulisation</h1>
+        </div>
+        <div class="alert alert-danger">
+          <strong>No Data!</strong> Please either import supervisor & student CSV data or uplaod a previously saved session in the <a href="javascript:showImportPage()" class="alert-link"> Import Data </a> Section
+        </div>
+        <div class="row" id="visulisations">
+          <div class="col-fixed-700" align="center">
+            <h1 class="h5">Project Allocation Summary</h1>
+            <div id="pieChart"></div>
+          </div>
+          <div class="col-fixed-900" align="center">
+            <h1 class="h5">Breakdown for Each Column</h1>
+            <div id=chart></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+</body>
+
+</html>
